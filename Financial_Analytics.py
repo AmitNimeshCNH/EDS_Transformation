@@ -7,36 +7,6 @@ prd=spark.sql('select p.business as cod_business,p.Product_Category as des_produ
 
 # COMMAND ----------
 
-geo=prd.select('ISO','ISO_country','cod_business','geo_id','region_AG','region_CE','Sub_region_AG','Sub_region_CE','Region_AG_sort_order','Region_CE_sort_order','Sub_region_AG_sort_order','Sub_region_CE_sort_order','Area_AG','Area_CE','des_market')
-
-# COMMAND ----------
-
-geo=geo.withColumn('new_region', when((col('cod_business') == 'AG'), col('region_AG'))\
-               .when((geo.cod_business == 'CE'), col('region_CE')).otherwise(lit("")))\
-       .withColumn('New_Subregion', when((col('cod_business') == 'AG'), col('Sub_region_AG'))\
-               .when((geo.cod_business == 'CE'), col('Sub_region_CE')).otherwise(lit("")))\
-       .withColumn('New_Region_Sort_Order', when((col('cod_business') == 'AG'), col('Region_AG_sort_order'))\
-               .when((geo.cod_business == 'CE'), col('Region_CE_sort_order')).otherwise(lit("")))\
-       .withColumn('New_Sub_Region_Sort_Order', when((col('cod_business') == 'AG'), col('Sub_region_AG_sort_order'))\
-               .when((geo.cod_business == 'CE'), col('Sub_region_CE_sort_order')).otherwise(lit("")))\
-       .withColumn('New_Area', when((col('cod_business') == 'AG'), col('Area_AG'))\
-               .when((prd.cod_business == 'CE'), col('Area_CE')).otherwise(lit("")))
-
-# COMMAND ----------
-
-# display(geo)
-geo=geo.withColumnRenamed('des_market', 'market')
-
-# COMMAND ----------
-
-geo_sop=geo.drop('sub_region_AG','sub_region_CE','Area_AG','Area_CE','region_AG','region_CE','Region_AG_sort_order','Region_CE_sort_order','Sub_region_AG','Sub_region_CE','Sub_region_AG_sort_order','Sub_region_CE_sort_order')
-
-# COMMAND ----------
-
-Prod_Sop=spark.sql('select brand,null as prod_id,null as product_category_id,GPL,gpl_sort_order,industry_L4, industry_L5,New_Product_Category,New_Product_Category_sort_order,plant,Product_cluster_group,Product_cluster,Product_sub_cluster,segment,Sub_Brand,industry_segment_scan_sort_order,product_cluster_sort_order,null as plateform from scan.tbl_odm_qlik_product_off_highway')
-
-# COMMAND ----------
-
 prd=prd.withColumn('des_sub_region', when((col('cod_business') == 'AG'), col('sub_region_AG'))\
                .when((prd.cod_business == 'CE'), col('sub_region_CE')).otherwise(lit("")))\
        .withColumn('des_area', when((col('cod_business') == 'AG'), col('Area_AG'))\
@@ -45,28 +15,28 @@ prd=prd.withColumn('des_sub_region', when((col('cod_business') == 'AG'), col('su
 
 # COMMAND ----------
 
-prd.select('cod_business','des_product_category','cod_region','des_sub_region','des_area','cod_product_line','des_family','cod_model','cod_brand','cod_plant','des_plant','des_brand','des_segment','cod_market','des_market','cod_hfm_market','id_pk','cod_dtyp','dat_month','dat_year','qty_kpi_sop','cod_cycle').show()
+fact=prd.select('cod_business','des_product_category','cod_region','des_sub_region','des_area','cod_product_line','des_family','cod_model','cod_brand','cod_plant','des_plant','des_brand','des_segment','cod_market','des_market','cod_hfm_market','id_pk','cod_dtyp','dat_month','dat_year','qty_kpi_sop','cod_cycle')
 
 # COMMAND ----------
 
-prd.createOrReplaceTempView('view_prd_fact')
+fact.display()
 
 # COMMAND ----------
 
-#spark.sql('delete from company_inventory.fact_sop where id_pk in (select id_pk from view_prd_fact)').show()
-spark.sql('insert into company_inventory.fact_sop select * from view_prd_fact where id_pk not in (select id_pk from view_prd_fact)').show()
+fact.createOrReplaceTempView("view_prd_fact")
 
 # COMMAND ----------
 
-spark.sql('select * from view_prd_fact').show()
+# spark.sql('create table if not exists company_inventory.fact_sop select * from view_prd_fact')
 
 # COMMAND ----------
 
-#prd.write.mode('overWrite').saveAsTable("company_inventory.fact_sop")
-Prod_Sop.write.mode('overWrite').saveAsTable('company_inventory.dim_Prod_Sop')
-geo_sop.write.mode('overWrite').saveAsTable("company_inventory.dim_Geo_Sop")
-# spark.sql('drop table if exists company_inventory.dim_Geo_Sop').show()
+# spark.sql('delete from company_inventory.fact_sop where id_pk in (select id_pk from view_prd_fact)')
+# spark.sql("insert into company_inventory.fact_sop select 'cod_business', 'des_product_category', 'cod_region', 'des_sub_region', 'des_area', 'cod_product_line', 'des_family', 'cod_model', 'cod_brand', 'cod_plant', 'des_plant', 'des_brand', 'des_segment', cast('cod_market' as int), 'des_market', 'cod_hfm_market', 'id_pk','cod_dtyp', 'dat_month', 'dat_year', qty_kpi_sop, 'cod_cycle' from view_prd_fact where id_pk not in (select id_pk from view_prd_fact)")
 
 # COMMAND ----------
 
-spark.sql('select * from company_inventory.dim_Prod_Sop limit 5').show()
+fact.write.mode('append').saveAsTable('company_inventory.fact_sop')
+# Prod_Sop.write.mode('overWrite').saveAsTable('company_inventory.dim_prod_sop')
+# spark.sql('drop table if exists company_inventory.fact_sop').show()
+# spark.sql('desc view_prd_fact').show()
