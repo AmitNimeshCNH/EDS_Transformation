@@ -34,12 +34,21 @@ geo_sop.display()
 
 # COMMAND ----------
 
+geo_sop=geo_sop.select('ISO','ISO_country','geo_id','market','new_region','New_Subregion','New_Region_Sort_Order','New_Sub_Region_Sort_Order','New_Area')
+geo_sop.display()
+
+# COMMAND ----------
+
 geo_sop.createOrReplaceTempView('view_dim_geo')
 
 # COMMAND ----------
 
-geo_sop=geo_sop.select('ISO','ISO_country','geo_id','market','new_region','New_Subregion','New_Region_Sort_Order','New_Sub_Region_Sort_Order','New_Area')
-geo_sop.display()
+spark.sql('delete from company_inventory.dim_geo_sop where ISO in (select distinct ISO from view_dim_geo)')
+spark.sql("insert into company_inventory.dim_geo_sop select * from view_dim_geo where ISO not in (select ISO from company_inventory.dim_geo_sop)")
+
+# COMMAND ----------
+
+spark.sql('select * from company_inventory.dim_geo_sop').show()
 
 # COMMAND ----------
 
@@ -56,10 +65,14 @@ spark.sql('create table if not exists company_inventory.dim_prod_sop as select *
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 # Prod_Sop.write.mode('overWrite').saveAsTable('company_inventory.dim_prod_sop')
 # spark.sql('drop table if exists company_inventory.dim_prod_sop').show()
 spark.sql('select * from company_inventory.dim_prod_sop').show()
 
 # COMMAND ----------
 
-spark.sql('select * from company_inventory.dim_prod_sop').show()
+spark.sql('select count(distinct *) from company_inventory.dim_prod_sop').show()

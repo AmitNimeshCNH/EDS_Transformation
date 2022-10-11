@@ -29,8 +29,8 @@ fact.createOrReplaceTempView("view_prd_fact_test")
 
 # COMMAND ----------
 
-spark.sql('select * from view_prd_fact_test').show()
-# spark.sql('select * from company_inventory.fact_sop_test').show()
+# spark.sql('select * from view_prd_fact_test').show()
+# # spark.sql('select * from company_inventory.fact_sop_test').show()
 
 # COMMAND ----------
 
@@ -42,7 +42,7 @@ spark.sql("insert into company_inventory.fact_sop select * from view_prd_fact_te
 
 # COMMAND ----------
 
-spark.sql('select * from company_inventory.fact_sop limit 5').show()
+spark.sql('select count(distinct *) from company_inventory.fact_sop limit 5').show()
 
 # COMMAND ----------
 
