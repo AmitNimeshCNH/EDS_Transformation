@@ -19,24 +19,34 @@ fact=prd.select('cod_business','des_product_category','cod_region','des_sub_regi
 
 # COMMAND ----------
 
-fact.display()
+fact=fact.distinct()
+# fact.display() count-9590162, distinct - 9590035
 
 # COMMAND ----------
 
-fact.createOrReplaceTempView("view_prd_fact")
+fact.createOrReplaceTempView("view_prd_fact_test")
+# fact.write.mode('overWrite').format('delta').saveAsTable('company_inventory.fact_sop_test')
 
 # COMMAND ----------
 
-# spark.sql('create table if not exists company_inventory.fact_sop select * from view_prd_fact')
+spark.sql('select * from view_prd_fact_test').show()
+# spark.sql('select * from company_inventory.fact_sop_test').show()
 
 # COMMAND ----------
 
-# spark.sql('delete from company_inventory.fact_sop where id_pk in (select id_pk from view_prd_fact)')
-# spark.sql("insert into company_inventory.fact_sop select 'cod_business', 'des_product_category', 'cod_region', 'des_sub_region', 'des_area', 'cod_product_line', 'des_family', 'cod_model', 'cod_brand', 'cod_plant', 'des_plant', 'des_brand', 'des_segment', cast('cod_market' as int), 'des_market', 'cod_hfm_market', 'id_pk','cod_dtyp', 'dat_month', 'dat_year', qty_kpi_sop, 'cod_cycle' from view_prd_fact where id_pk not in (select id_pk from view_prd_fact)")
+spark.sql('delete from company_inventory.fact_sop where id_pk in (select id_pk from view_prd_fact_test)')
 
 # COMMAND ----------
 
-fact.write.mode('append').saveAsTable('company_inventory.fact_sop')
+spark.sql("insert into company_inventory.fact_sop select * from view_prd_fact_test where id_pk not in (select id_pk from company_inventory.fact_sop)")
+
+# COMMAND ----------
+
+spark.sql('select * from company_inventory.fact_sop').show()
+
+# COMMAND ----------
+
+# fact.write.mode('append').saveAsTable('company_inventory.fact_sop')
 # Prod_Sop.write.mode('overWrite').saveAsTable('company_inventory.dim_prod_sop')
 # spark.sql('drop table if exists company_inventory.fact_sop').show()
 # spark.sql('desc view_prd_fact').show()

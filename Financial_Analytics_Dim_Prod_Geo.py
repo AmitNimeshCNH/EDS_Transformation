@@ -58,7 +58,7 @@ spark.sql('create table if not exists company_inventory.dim_prod_sop as select *
 
 # Prod_Sop.write.mode('overWrite').saveAsTable('company_inventory.dim_prod_sop')
 # spark.sql('drop table if exists company_inventory.dim_prod_sop').show()
-# spark.sql('select * from company_inventory.dim_prod_sop').show()
+spark.sql('select * from company_inventory.dim_prod_sop').show()
 
 # COMMAND ----------
 
