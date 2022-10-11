@@ -42,7 +42,7 @@ spark.sql("insert into company_inventory.fact_sop select * from view_prd_fact_te
 
 # COMMAND ----------
 
-spark.sql('select * from company_inventory.fact_sop').show()
+spark.sql('select * from company_inventory.fact_sop limit 5').show()
 
 # COMMAND ----------
 
